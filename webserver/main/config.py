@@ -1,4 +1,5 @@
 import os
+from main.logger.custom_logging import log
 from datetime import timedelta
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -52,11 +53,11 @@ class Config:
 class DevelopmentConfig(Config):
     DEBUG = True
     ENV = True
-    RABBITMQ_HOST = "localhost"
+    RABBITMQ_HOST = "rabbitmq"
     REGISTRY_BASE_URL = "https://pilot-gateway-1.beckn.nsdl.co.in"
-    MONGO_DATABASE_HOST = "localhost"
-    MONGO_DATABASE_PORT = 27017
-    MONGO_DATABASE_NAME = "sandbox_bpp"
+    MONGO_DATABASE_HOST = os.getenv("MONGO_DATABASE_HOST", "mongo")
+    MONGO_DATABASE_PORT = int(os.getenv("MONGO_DATABASE_PORT", 27017))
+    MONGO_DATABASE_NAME = os.getenv("MONGO_DATABASE_NAME", "sandbox_bpp")
 
 
 class ProductionConfig(Config):
@@ -86,11 +87,13 @@ config_by_name = dict(
 key = Config.SECRET_KEY
 
 
-def get_config_by_name(config_name, default=None, env_param_name=None):
+def get_config_by_name(config_name="BPP_CLIENT_ENDPOINT", default=None, env_param_name=None):
     config_env = os.getenv(env_param_name or "ENV")
     config_value = default
     if config_env:
         config_value = getattr(config_by_name[config_env](), config_name, default)
+        log(f"config_value: {config_value}")
+
     return config_value
 
 
